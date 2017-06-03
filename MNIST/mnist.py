@@ -14,7 +14,7 @@ def inference(x_ph):
     weights=tf.Variable(tf.truncated_normal([cfg.MNIST.LAYERS.CONV1.kernel_size,cfg.MNIST.LAYERS.CONV1.kernel_size,1,cfg.MNIST.LAYERS.CONV1.num_channels],stddev=1.0 / math.sqrt(float(IMG_SIZE*IMG_SIZE))),name='weights')
     bias=tf.Variable(tf.constant(0.1,shape=[cfg.MNIST.LAYERS.CONV1.num_channels]))
     conv1=tf.layers.conv2d(inputs=img,filters=cfg.MNIST.LAYERS.CONV1.num_channels, kernel_size=[cfg.MNIST.LAYERS.CONV1.kernel_size,cfg.MNIST.LAYERS.CONV1.kernel_size],padding='SAME',activation=tf.nn.relu)
-    pool1=tf.layers.max_pooling2d(inputs=conv1, pool_size=[cfg.MNIST.LAYERS.POOL1.kernel_size,cfg.MNIST.LAYERS.POOL1.kernel_size], strides=cfg.MNIST.LAYERS.POOL1.stride)
+    pool1=tf.layers.max_pooling2d(inputs=conv1, pool_size=[cfg.MNIST.LAYERS.POOL1.kernel_size,cfg.MNIST.LAYERS.POOL1.kernel_size], strides=cfg.MNIST.LAYERS.POOL1.stride,name='pooling')
 
   #CONV2
   with tf.name_scope('conv2'):
@@ -35,7 +35,8 @@ def inference(x_ph):
   with tf.name_scope('logits'):
     weights=tf.Variable(tf.truncated_normal([cfg.MNIST.LAYERS.FC1.size,NUM_CLASSES],stddev=1.0 / math.sqrt(float(IMG_SIZE*IMG_SIZE))),name='weights')
     bias=tf.Variable(tf.constant(0.1,shape=[NUM_CLASSES]))
-    logits=tf.layers.dense(inputs=fc1_do, units=NUM_CLASSES)
+    logits=tf.add(tf.matmul(fc1_do,weights),bias,name='logits')
+    #logits=tf.layers.dense(inputs=fc1_do, units=NUM_CLASSES, name='op_to_run')
   return logits
 
 def loss(logits, labels):

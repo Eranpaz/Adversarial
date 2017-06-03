@@ -1,4 +1,5 @@
 import easydict
+import os
 
 cfg=easydict.EasyDict()
 cfg.MNIST=easydict.EasyDict()
@@ -6,12 +7,16 @@ cfg.MNIST=easydict.EasyDict()
 cfg.MNIST.num_classes=10
 cfg.MNIST.img_size=28
 cfg.MNIST.batch_size=128
-cfg.MNIST.max_iter=300
+cfg.MNIST.max_iter=20000
 cfg.MNIST.epochs=None
 cfg.MNIST.lr=1e-4
 
 cfg.MNIST.RUN=easydict.EasyDict()
+cfg.MNIST.RUN.root_dir='/home/puzi/thesis/MNIST'
+cfg.MNIST.RUN.models_dir=os.path.join(cfg.MNIST.RUN.root_dir,'models')
 cfg.MNIST.RUN.models_to_save=2
+cfg.MNIST.RUN.last_model_name='final-model'
+
 ##MNIST LAYER DEFINITION
 cfg.MNIST.LAYERS=easydict.EasyDict()
 cfg.MNIST.LAYERS.CONV1=easydict.EasyDict()
@@ -35,3 +40,10 @@ cfg.MNIST.LAYERS.POOL2.stride=2
 cfg.MNIST.LAYERS.FC1=easydict.EasyDict()
 cfg.MNIST.LAYERS.FC1.size=1024
 cfg.MNIST.LAYERS.FC1.dropout=0.5
+
+cfg.ADV=easydict.EasyDict()
+cfg.ADV.eps=0.01
+cfg.ADV.epochs=1
+cfg.ADV.min_grad_clip=0
+cfg.ADV.max_grad_clip=1
+
