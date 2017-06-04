@@ -1,1 +1,5 @@
 *.pyc
+*.meta
+*.index
+*.data
+*~

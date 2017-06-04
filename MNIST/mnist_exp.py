@@ -71,11 +71,13 @@ def adversarial_example(x, sess ,x_ph, logits, new_class_idx):
     target = tf.one_hot(indices, output_dim)
     eps = -tf.abs(cfg.ADV.eps)
     for i in range(cfg.ADV.epochs):
-        prediction=sess.run(logits,feed_dict={x_ph:x})
-        loss=sess.run(mnist.loss(prediction, target))
-        print "X",x.shape
-        print "loss",loss
-        dy_dx= tf.gradients(loss, x)
+        #output=mnist.inference(x_ph)
+        sess.run(tf.global_variables_initializer())
+        #prediction=sess.run(logits,feed_dict={x_ph:x})
+        loss=mnist.loss(logits, target)
+        dy_dx=tf.gradients(loss, x)
+        print dy_dx
+        grads= sess.run(dy_dx,feed_dict={x_ph:x})
         print dy_dx
         x = tf.stop_gradient(x + eps*tf.sign(dy_dx))
         x = tf.clip_by_value(x, cfg.ADV.min_grad_clip,cfg.ADV.max_grad_clip)
@@ -87,8 +89,8 @@ def dump_images():
     
 
 #mnist_training()
-sess ,x, y_, output=load_model()
-batch = mnist_db.train.next_batch(1)
-adv=adversarial_example(batch[0], sess, x, output, 3)
+sess ,x_ph, y_ph, output=load_model()
+batch = mnist_db.train.next_batch(13)
+adv=adversarial_example(batch[0], sess, x_ph, output, 3)
 
 
