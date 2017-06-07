@@ -16,6 +16,7 @@ cfg.MNIST.RUN.root_dir='/home/puzi/thesis/MNIST'
 cfg.MNIST.RUN.models_dir=os.path.join(cfg.MNIST.RUN.root_dir,'models')
 cfg.MNIST.RUN.models_to_save=2
 cfg.MNIST.RUN.last_model_name='final-model'
+cfg.MNIST.RUN.dump_dir=os.path.join(cfg.MNIST.RUN.root_dir,'adv_images')
 
 ##MNIST LAYER DEFINITION
 cfg.MNIST.LAYERS=easydict.EasyDict()
@@ -42,8 +43,8 @@ cfg.MNIST.LAYERS.FC1.size=1024
 cfg.MNIST.LAYERS.FC1.dropout=0.5
 
 cfg.ADV=easydict.EasyDict()
-cfg.ADV.eps=0.01
-cfg.ADV.epochs=1
-cfg.ADV.min_grad_clip=0
-cfg.ADV.max_grad_clip=1
+cfg.ADV.eps=0.02
+cfg.ADV.epochs=10
+cfg.ADV.min_grad_clip=0.
+cfg.ADV.max_grad_clip=1.
 
