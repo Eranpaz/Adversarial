@@ -29,7 +29,8 @@ def inference(x_ph):
     #weights=tf.Variable(tf.truncated_normal([pool2.shape[1]*pool2.shape[2]*cfg.MNIST.LAYERS.CONV2.num_channels,cfg.MNIST.LAYERS.FC1.size],stddev=1.0 / math.sqrt(float(IMG_SIZE*IMG_SIZE))),name='weights')
     weights=tf.Variable(tf.truncated_normal([7*7*64,cfg.MNIST.LAYERS.FC1.size],stddev=1.0 / math.sqrt(float(IMG_SIZE*IMG_SIZE))),name='weights')
     bias=tf.Variable(tf.constant(0.1,shape=[cfg.MNIST.LAYERS.FC1.size]))
-    fc1=tf.layers.dense(inputs=pool2_flat, units=cfg.MNIST.LAYERS.FC1.size, activation=tf.nn.relu)
+    #fc1=tf.layers.dense(inputs=pool2_flat, units=cfg.MNIST.LAYERS.FC1.size, activation=tf.nn.relu, name='fc1')
+    fc1=tf.add(tf.matmul(pool2_flat, weights),bias, name='fc1')
     fc1_do=tf.layers.dropout(inputs=fc1, rate=cfg.MNIST.LAYERS.FC1.dropout, training=True)
   #FC2
   with tf.name_scope('logits'):

@@ -20,6 +20,17 @@ else:
     #need to calculate number of iterations based on epochs & batch size
     pass
 
+def iterator(images, labels):
+    if np.ndim(images)==3:
+        images=images.reshape(images.shape[1],images.shape[2])
+    num_batches=int(np.ceil(images.shape[0]/float(BATCH_SIZE)))
+    #print "required number of bataches is:",num_batches
+    img_list=[]
+    lbl_list=[]
+    for i in range(num_batches):
+        img_list.append(images[i*BATCH_SIZE:min((i+1)*BATCH_SIZE,images.shape[0]),:])
+        lbl_list.append(labels[i*BATCH_SIZE:min((i+1)*BATCH_SIZE,labels.shape[0])])
+    return img_list,lbl_list
 
 
 def mnist_training():
@@ -56,34 +67,45 @@ def load_model():
     sess=tf.Session()
     saver = tf.train.import_meta_graph(os.path.join(cfg.MNIST.RUN.models_dir,cfg.MNIST.RUN.last_model_name+'.meta'))
     saver.restore(sess, tf.train.latest_checkpoint(os.path.join(cfg.MNIST.RUN.models_dir)))
-    #sess.run(tf.global_variables_initializer())
 
     graph = tf.get_default_graph()
     x=graph.get_tensor_by_name('x_ph:0')
     y_=graph.get_tensor_by_name('y_ph:0')
+    fc1=graph.get_tensor_by_name('fc1/fc1:0')
     output = graph.get_tensor_by_name("logits/logits:0")
     loss=graph.get_tensor_by_name("xentropy:0")
     correct=graph.get_tensor_by_name("accuracy:0")
 
-    return sess,x,y_,output,loss, correct
+    return sess,x,y_,fc1,output,loss, correct
 
 def adversarial_example(x, y, x_ph, y_ph, logits, new_class_idx):
-    #x,_ = mnist_db.train.next_batch(13)
+    eps = -tf.abs(cfg.ADV.eps)
+    adv_images=None
+    
     output_dim=logits.shape[-1].value
-    batch_size=x.shape[0]
+    input_size=x.shape[0]
     if new_class_idx>=output_dim:
         print "new class index exceeds output vector dimensions"
         return None
-    indices=tf.constant(new_class_idx, shape=[batch_size])
-    target = sess.run(tf.one_hot(indices, output_dim))
-    eps = -tf.abs(cfg.ADV.eps)
-    loss=tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=target, logits=logits))
-    dy_dx=tf.gradients(loss, x_ph)
-    x_new=tf.identity(x)
-    for i in range(cfg.ADV.epochs):
-        x_new = tf.stop_gradient(x_new + eps*tf.sign(dy_dx))
-        x_new,g,l = sess.run([tf.clip_by_value(x_new, cfg.ADV.min_grad_clip,cfg.ADV.max_grad_clip),loss, dy_dx],feed_dict={x_ph:x,y_ph:target})
-    return x_new,g,l
+    indices=tf.constant(new_class_idx, shape=[input_size])
+    one_hot = sess.run(tf.one_hot(indices, output_dim))
+    img_list, lbl_list=iterator(x,one_hot)
+    print ("running for %d epochs" %cfg.ADV.epochs)
+    for b in range(len(img_list)):
+        if b%10==0:
+            print ("running batch number %d" %b)
+        loss=tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=lbl_list[b], logits=logits))
+        dy_dx=tf.gradients(loss, x_ph)
+        x_new=tf.identity(img_list[b])
+        for i in range(cfg.ADV.epochs):
+            x_new = tf.stop_gradient(x_new + eps*tf.sign(dy_dx))
+            x_new,l,g = sess.run([tf.clip_by_value(x_new, cfg.ADV.min_grad_clip,cfg.ADV.max_grad_clip),loss, dy_dx],feed_dict={x_ph:img_list[b],y_ph:lbl_list[b]})
+            x_new=x_new.reshape(x_new.shape[1],x_new.shape[2])
+        if type(adv_images) is not np.ndarray:
+            adv_images=x_new
+        else:
+            adv_images=np.concatenate((adv_images, x_new))
+    return adv_images,l,g
 
     
 def dump_images(images, labels, adv_labels=[]):
@@ -103,18 +125,31 @@ def dump_images(images, labels, adv_labels=[]):
         
 
 def eval_acc(images, labels, x_ph, y_ph):
-    if np.ndim(images)==3:
-        images=images.reshape(images.shape[1],images.shape[2])
-    acc=sess.run(correct,feed_dict={x_ph:images,y_ph:labels})
+    img_list, lbl_list=iterator(images, labels)
+    acc=[]
+    for i in range(len(img_list)):
+        p=sess.run(correct,feed_dict={x_ph:img_list[i],y_ph:lbl_list[i]})
+        acc.extend(p)
     return sess.run(tf.reduce_mean(tf.cast(acc,tf.float32)))
+
 
 
     
         
 
 #mnist_training()
-sess ,x_ph, y_ph, output,loss,correct=load_model()
-images,labels = mnist_db.test.next_batch(128)
+
+sess ,x_ph,y_ph,fc1,output,loss,correct=load_model()
+#images,labels = mnist_db.test.next_batch(128)
+#new_images, loss, grads=adversarial_example(images,labels, x_ph,y_ph, output, 5)
+for i in range(1,20):
+    orig_imgs=mnist_db.test.images
+    labels=mnist_db.test.labels
+    cfg.ADV.epochs=i
+    new_images,_,_=adversarial_example(orig_imgs, labels, x_ph, y_ph, output, 9)
+    print "returned images shape:", new_images.shape
+    print ("for %d epochs accuraccy is %f" %(i,eval_acc(new_images, labels, x_ph, y_ph)))
+#print eval_acc(b,l,x_ph,y_ph)
 #dump_images(mnist_db.train.images, mnist_db.train.labels)
-new_images, loss, grads=adversarial_example(images,labels, x_ph,y_ph, output, 5)
-print eval_acc(new_images,labels,x_ph,y_ph)
+#new_images, loss, grads=adversarial_example(images,labels, x_ph,y_ph, output, 5)
+#print eval_acc(new_images,labels,x_ph,y_ph)

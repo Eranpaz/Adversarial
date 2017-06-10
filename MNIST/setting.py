@@ -2,6 +2,7 @@ import easydict
 import os
 
 cfg=easydict.EasyDict()
+
 cfg.MNIST=easydict.EasyDict()
 ##MNIST DEFINITIONS
 cfg.MNIST.num_classes=10
@@ -42,9 +43,17 @@ cfg.MNIST.LAYERS.FC1=easydict.EasyDict()
 cfg.MNIST.LAYERS.FC1.size=1024
 cfg.MNIST.LAYERS.FC1.dropout=0.5
 
+##ADVERSARIAL EXAMPLES DEFINITION
 cfg.ADV=easydict.EasyDict()
 cfg.ADV.eps=0.02
 cfg.ADV.epochs=10
 cfg.ADV.min_grad_clip=0.
 cfg.ADV.max_grad_clip=1.
 
+##UTILS DEFINITION
+cfg.UTILS=easydict.EasyDict()
+##TSNE DEFINITION
+cfg.UTILS.TSNE=easydict.EasyDict()
+cfg.UTILS.TSNE.ndim=2
+cfg.UTILS.TSNE.iters=10000
+cfg.UTILS.TSNE.model_path=os.path.join(cfg.MNIST.RUN.root_dir,'models')
