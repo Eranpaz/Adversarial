@@ -4,6 +4,7 @@ import mnist
 import os
 import numpy as np
 from scipy import misc
+import random
 
 
 from tensorflow.examples.tutorials.mnist import input_data
@@ -78,6 +79,35 @@ def load_model():
 
     return sess,x,y_,fc1,output,loss, correct
 
+##def adversarial_example(x, y, x_ph, y_ph, logits, new_class_idx):
+##    eps = -tf.abs(cfg.ADV.eps)
+##    adv_images=None
+##    
+##    output_dim=logits.shape[-1].value
+##    input_size=x.shape[0]
+##    if new_class_idx>=output_dim:
+##        print "new class index exceeds output vector dimensions"
+##        return None
+##    indices=tf.constant(new_class_idx, shape=[input_size])
+##    one_hot = sess.run(tf.one_hot(indices, output_dim))
+##    img_list, lbl_list=iterator(x,one_hot)
+##    print ("running for %d epochs" %cfg.ADV.epochs)
+##    for b in range(len(img_list)):
+##        if b%10==0:
+##            print ("running batch number %d" %b)
+##        for i in range(cfg.ADV.epochs):
+##            loss=tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=lbl_list[b], logits=logits))
+##            dy_dx=tf.gradients(loss, x_ph)
+##            imgs=sess.run(tf.identity(img_list[b]))
+##            grads = tf.stop_gradient(imgs + eps*tf.sign(dy_dx))
+##            x_new,l,g = sess.run([tf.clip_by_value(grads, cfg.ADV.min_grad_clip,cfg.ADV.max_grad_clip),loss, dy_dx],feed_dict={x_ph:imgs,y_ph:lbl_list[b]})
+##            x_new=x_new.reshape(x_new.shape[1],x_new.shape[2])
+##        if type(adv_images) is not np.ndarray:
+##            adv_images=x_new
+##        else:
+##            adv_images=np.concatenate((adv_images, x_new))
+##    return adv_images,l,g
+
 def adversarial_example(x, y, x_ph, y_ph, logits, new_class_idx):
     eps = -tf.abs(cfg.ADV.eps)
     adv_images=None
@@ -90,22 +120,32 @@ def adversarial_example(x, y, x_ph, y_ph, logits, new_class_idx):
     indices=tf.constant(new_class_idx, shape=[input_size])
     one_hot = sess.run(tf.one_hot(indices, output_dim))
     img_list, lbl_list=iterator(x,one_hot)
+    loss=tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y_ph, logits=logits))
+    dy_dx=tf.gradients(loss, x_ph)
+    x_new = tf.stop_gradient(x_ph + eps*tf.sign(dy_dx))
+    x_new = tf.clip_by_value(x_new, cfg.ADV.min_grad_clip,cfg.ADV.max_grad_clip)
+    
     print ("running for %d epochs" %cfg.ADV.epochs)
     for b in range(len(img_list)):
         if b%10==0:
             print ("running batch number %d" %b)
-        loss=tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=lbl_list[b], logits=logits))
-        dy_dx=tf.gradients(loss, x_ph)
-        x_new=tf.identity(img_list[b])
         for i in range(cfg.ADV.epochs):
-            x_new = tf.stop_gradient(x_new + eps*tf.sign(dy_dx))
-            x_new,l,g = sess.run([tf.clip_by_value(x_new, cfg.ADV.min_grad_clip,cfg.ADV.max_grad_clip),loss, dy_dx],feed_dict={x_ph:img_list[b],y_ph:lbl_list[b]})
-            x_new=x_new.reshape(x_new.shape[1],x_new.shape[2])
+            print ("epoch %d" %i)
+            if i==0:
+                result=sess.run(x_new, feed_dict={x_ph:img_list[b],y_ph:lbl_list[b]})
+                result=np.reshape(result, (result.shape[1],result.shape[2]))
+            else:
+                tmp=sess.run(x_new, feed_dict={x_ph:result,y_ph:lbl_list[b]})
+                result=np.reshape(tmp, (tmp.shape[1],tmp.shape[2]))
+            #print "x shape:", type(x_new)
+            #x_new=sess.run(tf.reshape(x_new,(x_new.shape[1],x_new.shape[2])))
+            #print "x shape:", result.shape
+            #x_new=x_new.reshape(x_new.shape[1],x_new.shape[2])
         if type(adv_images) is not np.ndarray:
-            adv_images=x_new
+            adv_images=result
         else:
-            adv_images=np.concatenate((adv_images, x_new))
-    return adv_images,l,g
+            adv_images=np.concatenate((adv_images, result))
+    return adv_images
 
     
 def dump_images(images, labels, adv_labels=[]):
@@ -142,13 +182,20 @@ def eval_acc(images, labels, x_ph, y_ph):
 sess ,x_ph,y_ph,fc1,output,loss,correct=load_model()
 #images,labels = mnist_db.test.next_batch(128)
 #new_images, loss, grads=adversarial_example(images,labels, x_ph,y_ph, output, 5)
+orig_imgs=mnist_db.test.images
+labels=mnist_db.test.labels
+idx=np.where(np.argmax(labels,axis=1)==1)[0]
+random.shuffle(idx)
+sub_labels=labels[idx[:200]]
+sub_images=orig_imgs[idx[:200]]
+l=np.zeros((200,10))
+l[:,5]=1
 for i in range(1,20):
-    orig_imgs=mnist_db.test.images
-    labels=mnist_db.test.labels
     cfg.ADV.epochs=i
-    new_images,_,_=adversarial_example(orig_imgs, labels, x_ph, y_ph, output, 9)
+    new_images=adversarial_example(sub_images, sub_labels, x_ph, y_ph, output, 5)
     print "returned images shape:", new_images.shape
-    print ("for %d epochs accuraccy is %f" %(i,eval_acc(new_images, labels, x_ph, y_ph)))
+    print ("for %d epochs accuraccy is %f" %(i,eval_acc(new_images, sub_labels, x_ph, y_ph)))
+    print ("for %d epochs accuraccy is %f" %(i,eval_acc(new_images, l, x_ph, y_ph)))
 #print eval_acc(b,l,x_ph,y_ph)
 #dump_images(mnist_db.train.images, mnist_db.train.labels)
 #new_images, loss, grads=adversarial_example(images,labels, x_ph,y_ph, output, 5)
