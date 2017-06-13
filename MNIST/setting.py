@@ -43,6 +43,32 @@ cfg.MNIST.LAYERS.FC1=easydict.EasyDict()
 cfg.MNIST.LAYERS.FC1.size=1024
 cfg.MNIST.LAYERS.FC1.dropout=0.5
 
+##MNIST VAE CONFIGURATION
+cfg.MNIST.VAE=easydict.EasyDict()
+cfg.MNIST.VAE.ENC=easydict.EasyDict()
+
+cfg.MNIST.VAE.ENC.CONV1=easydict.EasyDict()
+cfg.MNIST.VAE.ENC.CONV1.num_channels=64
+cfg.MNIST.VAE.ENC.CONV1.kernel_size=5
+cfg.MNIST.VAE.ENC.CONV1.stride=2
+
+cfg.MNIST.VAE.ENC.CONV2=easydict.EasyDict()
+cfg.MNIST.VAE.ENC.CONV2.num_channels=128
+cfg.MNIST.VAE.ENC.CONV2.kernel_size=5
+cfg.MNIST.VAE.ENC.CONV2.stride=2
+
+cfg.MNIST.VAE.ENC.CONV3=easydict.EasyDict()
+cfg.MNIST.VAE.ENC.CONV3.num_channels=256
+cfg.MNIST.VAE.ENC.CONV3.kernel_size=5
+cfg.MNIST.VAE.ENC.CONV3.stride=2
+
+
+
+
+
+
+
+
 ##ADVERSARIAL EXAMPLES DEFINITION
 cfg.ADV=easydict.EasyDict()
 cfg.ADV.eps=0.02

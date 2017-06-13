@@ -130,17 +130,12 @@ def adversarial_example(x, y, x_ph, y_ph, logits, new_class_idx):
         if b%10==0:
             print ("running batch number %d" %b)
         for i in range(cfg.ADV.epochs):
-            print ("epoch %d" %i)
             if i==0:
                 result=sess.run(x_new, feed_dict={x_ph:img_list[b],y_ph:lbl_list[b]})
                 result=np.reshape(result, (result.shape[1],result.shape[2]))
             else:
                 tmp=sess.run(x_new, feed_dict={x_ph:result,y_ph:lbl_list[b]})
                 result=np.reshape(tmp, (tmp.shape[1],tmp.shape[2]))
-            #print "x shape:", type(x_new)
-            #x_new=sess.run(tf.reshape(x_new,(x_new.shape[1],x_new.shape[2])))
-            #print "x shape:", result.shape
-            #x_new=x_new.reshape(x_new.shape[1],x_new.shape[2])
         if type(adv_images) is not np.ndarray:
             adv_images=result
         else:
@@ -190,8 +185,8 @@ sub_labels=labels[idx[:200]]
 sub_images=orig_imgs[idx[:200]]
 l=np.zeros((200,10))
 l[:,5]=1
-for i in range(1,20):
-    cfg.ADV.epochs=i
+for i in range(1):
+    cfg.ADV.epochs=10
     new_images=adversarial_example(sub_images, sub_labels, x_ph, y_ph, output, 5)
     print "returned images shape:", new_images.shape
     print ("for %d epochs accuraccy is %f" %(i,eval_acc(new_images, sub_labels, x_ph, y_ph)))
