@@ -62,8 +62,25 @@ cfg.MNIST.VAE.ENC.CONV3.num_channels=256
 cfg.MNIST.VAE.ENC.CONV3.kernel_size=5
 cfg.MNIST.VAE.ENC.CONV3.stride=2
 
+cfg.MNIST.VAE.ENC.z_mean_size=2048
+cfg.MNIST.VAE.ENC.z_var_size=2048
+
+cfg.MNIST.VAE.ENC.BN=easydict.EasyDict()
+cfg.MNIST.VAE.ENC.BN.momentum=0.9
+cfg.MNIST.VAE.ENC.BN.axis=1
+cfg.MNIST.VAE.ENC.BN.eps=1e-5
+cfg.MNIST.VAE.ENC.BN.center=False
+cfg.MNIST.VAE.ENC.BN.scale=False
+
+cfg.MNIST.VAE.GEN=easydict.EasyDict()
+cfg.MNIST.VAE.GEN.FC=easydict.EasyDict()
+cfg.MNIST.VAE.GEN.FC.size=8*8*256
 
 
+cfg.MNIST.VAE.GEN.DECONV1=easydict.EasyDict()
+cfg.MNIST.VAE.GEN.DECONV1.num_channels=64
+cfg.MNIST.VAE.GEN.DECONV1.kernel_size=5
+cfg.MNIST.VAE.GEN.DECONV1.stride=2
 
 
 
