@@ -60,7 +60,7 @@ cfg.MNIST.VAE.ENC.CONV2.stride=2
 cfg.MNIST.VAE.ENC.CONV3=easydict.EasyDict()
 cfg.MNIST.VAE.ENC.CONV3.num_channels=256
 cfg.MNIST.VAE.ENC.CONV3.kernel_size=5
-cfg.MNIST.VAE.ENC.CONV3.stride=2
+cfg.MNIST.VAE.ENC.CONV3.stride=1
 
 cfg.MNIST.VAE.ENC.z_mean_size=2048
 cfg.MNIST.VAE.ENC.z_var_size=2048
@@ -74,16 +74,56 @@ cfg.MNIST.VAE.ENC.BN.scale=False
 
 cfg.MNIST.VAE.GEN=easydict.EasyDict()
 cfg.MNIST.VAE.GEN.FC=easydict.EasyDict()
-cfg.MNIST.VAE.GEN.FC.size=8*8*256
-
+cfg.MNIST.VAE.GEN.FC.size=7*7*256
 
 cfg.MNIST.VAE.GEN.DECONV1=easydict.EasyDict()
-cfg.MNIST.VAE.GEN.DECONV1.num_channels=64
+cfg.MNIST.VAE.GEN.DECONV1.num_channels=256
 cfg.MNIST.VAE.GEN.DECONV1.kernel_size=5
 cfg.MNIST.VAE.GEN.DECONV1.stride=2
 
+cfg.MNIST.VAE.GEN.DECONV2=easydict.EasyDict()
+cfg.MNIST.VAE.GEN.DECONV2.num_channels=128
+cfg.MNIST.VAE.GEN.DECONV2.kernel_size=5
+cfg.MNIST.VAE.GEN.DECONV2.stride=2
 
+cfg.MNIST.VAE.GEN.DECONV3=easydict.EasyDict()
+cfg.MNIST.VAE.GEN.DECONV3.num_channels=32
+cfg.MNIST.VAE.GEN.DECONV3.kernel_size=5
+cfg.MNIST.VAE.GEN.DECONV3.stride=1
 
+cfg.MNIST.VAE.GEN.X=easydict.EasyDict()
+cfg.MNIST.VAE.GEN.X.num_channels=1
+cfg.MNIST.VAE.GEN.X.kernel_size=5
+cfg.MNIST.VAE.GEN.X.stride=1
+
+cfg.MNIST.VAE.DIS=easydict.EasyDict()
+cfg.MNIST.VAE.DIS.CONV1=easydict.EasyDict()
+cfg.MNIST.VAE.DIS.CONV1.num_channels=32
+cfg.MNIST.VAE.DIS.CONV1.kernel_size=5
+cfg.MNIST.VAE.DIS.CONV1.stride=2
+
+cfg.MNIST.VAE.DIS.CONV2=easydict.EasyDict()
+cfg.MNIST.VAE.DIS.CONV2.num_channels=128
+cfg.MNIST.VAE.DIS.CONV2.kernel_size=5
+cfg.MNIST.VAE.DIS.CONV2.stride=2
+
+cfg.MNIST.VAE.DIS.CONV3=easydict.EasyDict()
+cfg.MNIST.VAE.DIS.CONV3.num_channels=256
+cfg.MNIST.VAE.DIS.CONV3.kernel_size=5
+cfg.MNIST.VAE.DIS.CONV3.stride=2
+
+cfg.MNIST.VAE.DIS.CONV4=easydict.EasyDict()
+cfg.MNIST.VAE.DIS.CONV4.num_channels=256
+cfg.MNIST.VAE.DIS.CONV4.kernel_size=5
+cfg.MNIST.VAE.DIS.CONV4.stride=2
+
+cfg.MNIST.VAE.DIS.FC=easydict.EasyDict()
+cfg.MNIST.VAE.DIS.FC.size=512
+
+cfg.MNIST.VAE.LOSSES=easydict.EasyDict()
+cfg.MNIST.VAE.LOSSES.KL_weight=1
+cfg.MNIST.VAE.LOSSES.LL_weight=1
+cfg.MNIST.VAE.LOSSES.G_weight=1
 
 
 ##ADVERSARIAL EXAMPLES DEFINITION
@@ -91,7 +131,7 @@ cfg.ADV=easydict.EasyDict()
 cfg.ADV.eps=0.02
 cfg.ADV.epochs=10
 cfg.ADV.min_grad_clip=0.
-cfg.ADV.max_grad_clip=1.
+cfg.ADV.max_grad_clip=1.1
 
 ##UTILS DEFINITION
 cfg.UTILS=easydict.EasyDict()
