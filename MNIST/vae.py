@@ -2,6 +2,9 @@ from setting import cfg
 import tensorflow as tf
 import math
 
+from tensorflow.examples.tutorials.mnist import input_data
+mnist_db = input_data.read_data_sets('MNIST_data', one_hot=True)
+
 NUM_CLASSES=cfg.MNIST.num_classes
 IMG_SIZE=cfg.MNIST.img_size
 BATCH_SIZE=cfg.MNIST.batch_size
@@ -161,8 +164,9 @@ def loss(x_ph, x_tilde, z_var, z_mean, d_x, d_x_p, l_x, l_x_tilde):
     """
     Loss functions for SSE, KL divergence, Discrim, Generator, Lth Layer Similarity
     """
+    img=tf.reshape(x_ph,[-1,IMG_SIZE,IMG_SIZE,1])
     ### We don't actually use SSE (MSE) loss for anything (but maybe pretraining)
-    SSE_loss = tf.reduce_mean(tf.square(x_ph - x_tilde)) # This is what a normal VAE uses
+    SSE_loss = tf.reduce_mean(tf.square(img - x_tilde)) # This is what a normal VAE uses
 
     # We clip gradients of KL divergence to prevent NANs
     KL_loss = tf.reduce_sum(-0.5 * tf.reduce_sum(1 + tf.clip_by_value(z_var, -10.0, 10.0)- tf.square(tf.clip_by_value(z_mean, -10.0, 10.0) ) - tf.exp(tf.clip_by_value(z_var, -10.0, 10.0) ), 1))/IMG_SIZE/IMG_SIZE
@@ -210,9 +214,10 @@ def train():
 
     print "*****TRAINING STARTED*******"
     for i in range(MAX_ITER):
+        print i
         if i%100==0 and i>0:
             print('Step %d: Discriminator loss = %.2f, Generator loss = %.2f' % (i,D_err, G_err ))
-    batch = mnist_db.train.next_batch(BATCH_SIZE)
-    _, _, _, D_err, G_err, KL_err, SSE_err, LL_err, d_fake,d_real = sess.run([opt_e,opt_g,opt_d,D_loss, G_loss, KL_loss, SSE_loss, LL_loss,d_x_p, d_x],feed_dict={x_ph:batch[0]})
+        batch = mnist_db.train.next_batch(BATCH_SIZE)
+        _, _, _, D_err, G_err, KL_err, SSE_err, LL_err, d_fake,d_real = sess.run([opt_e,opt_g,opt_d,D_loss, G_loss, KL_loss, SSE_loss, LL_loss,d_x_p, d_x],feed_dict={x_ph:batch[0]})
 
 train()

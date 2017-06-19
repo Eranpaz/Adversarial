@@ -7,7 +7,7 @@ cfg.MNIST=easydict.EasyDict()
 ##MNIST DEFINITIONS
 cfg.MNIST.num_classes=10
 cfg.MNIST.img_size=28
-cfg.MNIST.batch_size=128
+cfg.MNIST.batch_size=4
 cfg.MNIST.max_iter=20000
 cfg.MNIST.epochs=None
 cfg.MNIST.lr=1e-4
