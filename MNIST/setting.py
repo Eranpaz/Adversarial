@@ -7,13 +7,18 @@ cfg.MNIST=easydict.EasyDict()
 ##MNIST DEFINITIONS
 cfg.MNIST.num_classes=10
 cfg.MNIST.img_size=28
+<<<<<<< HEAD
 cfg.MNIST.batch_size=4
 cfg.MNIST.max_iter=20000
+=======
+cfg.MNIST.batch_size=64
+cfg.MNIST.max_iter=40000
+>>>>>>> c010fed3049cc51865193f411cc7dc65201280f9
 cfg.MNIST.epochs=None
-cfg.MNIST.lr=1e-4
+cfg.MNIST.lr=1e-2
 
 cfg.MNIST.RUN=easydict.EasyDict()
-cfg.MNIST.RUN.root_dir='/home/puzi/thesis/MNIST'
+cfg.MNIST.RUN.root_dir='/ib/devel/machine_learning/eranpaz/projects/VAE/MNIST'
 cfg.MNIST.RUN.models_dir=os.path.join(cfg.MNIST.RUN.root_dir,'models')
 cfg.MNIST.RUN.models_to_save=2
 cfg.MNIST.RUN.last_model_name='final-model'
@@ -62,8 +67,8 @@ cfg.MNIST.VAE.ENC.CONV3.num_channels=256
 cfg.MNIST.VAE.ENC.CONV3.kernel_size=5
 cfg.MNIST.VAE.ENC.CONV3.stride=1
 
-cfg.MNIST.VAE.ENC.z_mean_size=2048
-cfg.MNIST.VAE.ENC.z_var_size=2048
+cfg.MNIST.VAE.ENC.z_mean_size=1024
+cfg.MNIST.VAE.ENC.z_var_size=1024
 
 cfg.MNIST.VAE.ENC.BN=easydict.EasyDict()
 cfg.MNIST.VAE.ENC.BN.momentum=0.9
@@ -122,8 +127,8 @@ cfg.MNIST.VAE.DIS.FC.size=512
 
 cfg.MNIST.VAE.LOSSES=easydict.EasyDict()
 cfg.MNIST.VAE.LOSSES.KL_weight=1
-cfg.MNIST.VAE.LOSSES.LL_weight=1
-cfg.MNIST.VAE.LOSSES.G_weight=1
+cfg.MNIST.VAE.LOSSES.LL_weight=2
+cfg.MNIST.VAE.LOSSES.G_weight=2
 
 
 ##ADVERSARIAL EXAMPLES DEFINITION
