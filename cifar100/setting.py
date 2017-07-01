@@ -9,6 +9,8 @@ cfg.CIFAR.format='MATRIX'
 cfg.CIFAR.num_classes=100
 cfg.CIFAR.batch_size=32
 cfg.CIFAR.img_size=32
+cfg.CIFAR.num_channels=3
+cfg.CIFAR.lr=1e-3
 
 cfg.CIFAR.RUN=easydict.EasyDict()
 cfg.CIFAR.RUN.root_dir='/home/puzi/thesis/cifar100'

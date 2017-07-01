@@ -5,7 +5,8 @@ import numpy as np
 import os
 import pickle
 from matplotlib import pyplot as plt
-
+from tqdm import tqdm
+import scipy
 
 NUM_CLASSES=cfg.CIFAR.num_classes
 IMG_SIZE=cfg.CIFAR.img_size
@@ -13,7 +14,7 @@ BATCH_SIZE=cfg.CIFAR.batch_size
 LR=cfg.CIFAR.lr
 
 
-def load_data(dataset='train'):
+def load_data(dataset='train_rot'):
     fin=open(os.path.join(cfg.CIFAR.RUN.root_dir,'data',dataset),'r')
     data=pickle.load(fin)
     fin.close()
@@ -33,8 +34,8 @@ def lr_sig(x,shift,mult):
     return 1/(1+math.exp(-(x+shift)*mult))
 
 def encoder(x_ph):
-    #img=tf.reshape(x_ph,[-1,IMG_SIZE,IMG_SIZE,3])
-    img=tf.identity(x_ph)
+    img=tf.reshape(x_ph,[-1,IMG_SIZE,IMG_SIZE,3])
+    #img=tf.identity(x_ph)
     with tf.name_scope('enc_conv1'):
         weights=tf.Variable(tf.truncated_normal([cfg.CIFAR.VAE.ENC.CONV1.kernel_size,cfg.CIFAR.VAE.ENC.CONV1.kernel_size,1,cfg.CIFAR.VAE.ENC.CONV1.num_channels],stddev=1.0 / math.sqrt(float(IMG_SIZE*IMG_SIZE))),name='weights')
         bias=tf.Variable(tf.constant(0.1,shape=[cfg.CIFAR.VAE.ENC.CONV1.num_channels]))
@@ -72,7 +73,7 @@ def generator(z_x_ph):
         weights=tf.Variable(tf.truncated_normal([z_x_ph.shape[1].value,cfg.CIFAR.VAE.GEN.FC.size],stddev=1.0 / math.sqrt(float(cfg.CIFAR.VAE.ENC.z_var_size))),name='weights')
         bias=tf.Variable(tf.constant(0.1,shape=[cfg.CIFAR.VAE.GEN.FC.size]))
         fc=tf.add(tf.matmul(z_x_ph,weights),bias, name='fc')
-        fc=tf.reshape(fc,(-1,7,7,256),name='fc_reshaped')
+        fc=tf.reshape(fc,(-1,8,8,256),name='fc_reshaped')
         bn4=tf.layers.batch_normalization(fc, axis=cfg.CIFAR.VAE.ENC.BN.axis, momentum=cfg.CIFAR.VAE.ENC.BN.momentum, epsilon=cfg.CIFAR.VAE.ENC.BN.eps,center=cfg.CIFAR.VAE.ENC.BN.center, scale=cfg.CIFAR.VAE.ENC.BN.scale)
         bn4=tf.nn.relu(bn4,name='fc_reshaped')
 
@@ -225,7 +226,6 @@ def training(SSE_loss, KL_loss, D_loss, G_loss, LL_loss, lr_e_ph, lr_g_ph, lr_d_
 
 def train():
     data=load_data()
-    batch_iterator=data_iterator(data)
     
     x_ph = tf.placeholder(tf.float32, shape=[None, IMG_SIZE*IMG_SIZE], name='x_ph')
     lr_e_ph=tf.placeholder(tf.float32,shape=[])
@@ -250,32 +250,28 @@ def train():
     d_real=0.5
     lr_summary=[]
     loss_summary=[]
-    for i in range(MAX_ITER):
-        print i
-        if i%100==0 and i>0:
-<<<<<<< HEAD
-            print('Step %d: Discriminator loss = %.2f, Generator loss = %.2f' % (i,D_err, G_err ))
-        batch = mnist_db.train.next_batch(BATCH_SIZE)
-        _, _, _, D_err, G_err, KL_err, SSE_err, LL_err, d_fake,d_real = sess.run([opt_e,opt_g,opt_d,D_loss, G_loss, KL_loss, SSE_loss, LL_loss,d_x_p, d_x],feed_dict={x_ph:batch[0]})
-=======
-            print('Step %d: Discriminator loss = %.5f, Generator loss = %.5f Similarity loss = %.7f' % (i,D_err, G_err, LL_err ))
-            print("classification errors: d_fake=%.7f d_real=%.7f" %(np.mean(d_fake), np.mean(d_real)))
-            print('Current LR: e_lr=%.7f g_lr=%.7f d_lr=%.7f' % (lr_e,lr_g,lr_d))
-            loss_summary.append((D_err, G_err, KL_err, SSE_err, LL_err, np.mean(d_fake),np.mean(d_real)))
-            lr_summary.append((lr_e,lr_g,lr_d))
-        if i%1000==0 and i>0:
-            saver.save(sess,os.path.join(cfg.CIFAR.RUN.models_dir,'model_vae'),global_step=i)
-            summaries={'loss':loss_summary,'lr':lr_summary}
-            fout=open('./models/summaries.pkl','w')
-            pickle.dump(summaries,fout)
-            fout.close()
-        batch = mnist_db.train.next_batch(BATCH_SIZE)
+    for i in tqdm(range(cfg.CIFAR.epochs)):
         lr_e=LR*lr_sig(np.mean(d_real),-0.5,15)
         lr_g=LR*lr_sig(np.mean(d_real),-0.5,15)
         lr_d=LR*lr_sig(np.mean(d_fake),-0.5,15)
-        _, _, _, D_err, G_err, KL_err, SSE_err, LL_err, d_fake,d_real = sess.run([train_e,train_g,train_d,D_loss, G_loss, KL_loss, SSE_loss, LL_loss,d_x_p, d_x],feed_dict={x_ph:batch[0],lr_e_ph:lr_e, lr_g_ph:lr_g, lr_d_ph:lr_d})
-        #print('Step %d: Discriminator loss = %.2f, Generator loss = %.2f' % (i,D_err, G_err ))
-    #saver.save(sess,os.path.join(cfg.CIFAR.RUN.models_dir,cfg.CIFAR.RUN.last_model_name))
+        batch_iterator=data_iterator(data)
+        for j in tqdm(range(MAX_ITER)):
+            if j%100==0 and j>0:
+                print('Epoch %d Iteration %d: Discriminator loss = %.5f, Generator loss = %.5f Similarity loss = %.7f' % (i,j,D_err, G_err, LL_err ))
+                print("classification errors: d_fake=%.7f d_real=%.7f" %(np.mean(d_fake), np.mean(d_real)))
+                print('Current LR: e_lr=%.7f g_lr=%.7f d_lr=%.7f' % (lr_e,lr_g,lr_d))
+                loss_summary.append((D_err, G_err, KL_err, SSE_err, LL_err, np.mean(d_fake),np.mean(d_real)))
+                lr_summary.append((lr_e,lr_g,lr_d))  
+            batch=batch_iterator.next()
+            #batch=np.rot90(np.reshape(batch,(IMG_SIZE,IMG_SIZE,cfg.CIFAR.num_channels),order='A'),k=3)
+            print batch.shape
+            _, _, _, D_err, G_err, KL_err, SSE_err, LL_err, d_fake,d_real = sess.run([train_e,train_g,train_d,D_loss, G_loss, KL_loss, SSE_loss, LL_loss,d_x_p, d_x],feed_dict={x_ph:batch[0],lr_e_ph:lr_e, lr_g_ph:lr_g, lr_d_ph:lr_d})
+        saver.save(sess,os.path.join(cfg.CIFAR.RUN.models_dir,'model_vae'),global_step=i)
+        summaries={'loss':loss_summary,'lr':lr_summary}
+        fout=open('./models/summaries.pkl','w')
+        pickle.dump(summaries,fout)
+        fout.close()    
+    saver.save(sess,os.path.join(cfg.CIFAR.RUN.models_dir,cfg.CIFAR.RUN.last_model_name))
     
 
 def generate():
@@ -345,9 +341,6 @@ def visualize_learning():
     plt.show()
 
     
-        
->>>>>>> c010fed3049cc51865193f411cc7dc65201280f9
-
-#train()
-g=generate()
+train()
+#g=generate()
 #visualize_learning()
