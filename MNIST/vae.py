@@ -238,11 +238,6 @@ def train():
     for i in range(MAX_ITER):
         print i
         if i%100==0 and i>0:
-<<<<<<< HEAD
-            print('Step %d: Discriminator loss = %.2f, Generator loss = %.2f' % (i,D_err, G_err ))
-        batch = mnist_db.train.next_batch(BATCH_SIZE)
-        _, _, _, D_err, G_err, KL_err, SSE_err, LL_err, d_fake,d_real = sess.run([opt_e,opt_g,opt_d,D_loss, G_loss, KL_loss, SSE_loss, LL_loss,d_x_p, d_x],feed_dict={x_ph:batch[0]})
-=======
             print('Step %d: Discriminator loss = %.5f, Generator loss = %.5f Similarity loss = %.7f' % (i,D_err, G_err, LL_err ))
             print("classification errors: d_fake=%.7f d_real=%.7f" %(np.mean(d_fake), np.mean(d_real)))
             print('Current LR: e_lr=%.7f g_lr=%.7f d_lr=%.7f' % (lr_e,lr_g,lr_d))
@@ -329,10 +324,7 @@ def visualize_learning():
     plt.legend(bbox_to_anchor=(1, 1), loc=2, borderaxespad=0.)
     plt.show()
 
-    
-        
->>>>>>> c010fed3049cc51865193f411cc7dc65201280f9
 
 #train()
-g=generate()
-#visualize_learning()
+#g=generate()
+visualize_learning()
